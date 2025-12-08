@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Subaru Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .auth-section {
+            display: none;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .auth-section.active {
+            display: block;
+        }
+
+        .auth-section h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .login-view {
+            display: none;
+        }
+
+        .login-view.active {
+            display: block;
+        }
+
+        .signup-view {
+            display: none;
+        }
+
+        .signup-view.active {
+            display: block;
+        }
+
+        .app-view {
+            display: none;
+        }
+
+        .app-view.active {
+            display: block;
+        }
+
+        .user-info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .user-info p {
+            margin: 5px 0;
+            color: #333;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .results {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        .results h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .result-item {
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-item p {
+            margin: 5px 0;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .result-item .date {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .result-item .count {
+            font-size: 18px;
+            font-weight: 700;
+            color: #764ba2;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .form-row input,
+        .form-row select {
+            margin: 0;
+        }
+
+        .toggle-view {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .toggle-view button {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 5px;
+        }
+
+        .toggle-view button:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Red Subaru Tracker</h1>
+            <p>Track your red Subaru sightings</p>
+        </div>
+
+        <!-- Login View -->
+        <div class="login-view active">
+            <div class="message info">
+                <strong>Welcome!</strong> Log in or create a new account to get started.
+            </div>
+            <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" placeholder="Enter your password">
+            </div>
+            <button class="btn-primary" onclick="handleLogin()">Sign In</button>
+            <div class="toggle-view">
+                Don't have an account? <button onclick="showSignup()">Create one</button>
+            </div>
+        </div>
+
+        <!-- Signup View -->
+        <div class="signup-view">
+            <div class="form-group">
+                <label for="signup-email">Email</label>
+                <input type="email" id="signup-email" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label for="signup-password">Password</label>
+                <input type="password" id="signup-password" placeholder="At least 8 characters">
+            </div>
+            <div class="form-group">
+                <label for="signup-confirm">Confirm Password</label>
+                <input type="password" id="signup-confirm" placeholder="Re-enter your password">
+            </div>
+            <button class="btn-primary" onclick="handleSignup()">Create Account</button>
+            <div class="toggle-view">
+                Already have an account? <button onclick="showLogin()">Sign in</button>
+            </div>
+        </div>
+
+        <!-- App View -->
+        <div class="app-view">
+            <div class="user-info">
+                <p><strong>Logged in as:</strong> <span id="user-email">-</span></p>
+                <button class="btn-secondary" onclick="handleLogout()">Sign Out</button>
+            </div>
+
+            <!-- Data Entry Section -->
+            <div class="section">
+                <h2>📝 Log a Sighting</h2>
+                <div id="entry-message"></div>
+                <div class="form-row">
+                    <div>
+                        <label for="sighting-date">Date</label>
+                        <input type="date" id="sighting-date">
+                    </div>
+                    <div>
+                        <label for="sighting-count">Number of Subarus</label>
+                        <input type="number" id="sighting-count" min="1" placeholder="e.g., 3">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="handleSubmitSighting()" style="margin-top: 15px;">Submit Sighting</button>
+            </div>
+
+            <!-- Query Section -->
+            <div class="section">
+                <h2>📊 View Statistics</h2>
+                <div id="query-message"></div>
+                <div class="form-row">
+                    <div>
+                        <label for="query-start-date">Start Date</label>
+                        <input type="date" id="query-start-date">
+                    </div>
+                    <div>
+                        <label for="query-end-date">End Date</label>
+                        <input type="date" id="query-end-date">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="handleQuery()" style="margin-top: 15px;">Get Statistics</button>
+
+                <div id="loading-query" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading...</p>
+                </div>
+
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_GATEWAY_URL = 'https://api.example.com'; // Replace with your API Gateway URL
+        const COGNITO_CLIENT_ID = 'your-cognito-client-id'; // Replace with your Cognito Client ID
+        const COGNITO_DOMAIN = 'https://your-domain.auth.region.amazoncognito.com'; // Replace with your Cognito domain
+        const COGNITO_REGION = 'us-east-1'; // Replace with your region
+
+        // In-memory token storage (in production, use secure storage)
+        let idToken = localStorage.getItem('idToken');
+        let userEmail = localStorage.getItem('userEmail');
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            if (idToken && userEmail) {
+                showAppView();
+            }
+        });
+
+        // UI Navigation
+        function showLogin() {
+            document.querySelector('.login-view').classList.add('active');
+            document.querySelector('.signup-view').classList.remove('active');
+        }
+
+        function showSignup() {
+            document.querySelector('.signup-view').classList.add('active');
+            document.querySelector('.login-view').classList.remove('active');
+        }
+
+        function showAppView() {
+            document.querySelector('.login-view').classList.remove('active');
+            document.querySelector('.signup-view').classList.remove('active');
+            document.querySelector('.app-view').classList.add('active');
+            document.getElementById('user-email').textContent = userEmail;
+        }
+
+        // Message display helpers
+        function showMessage(elementId, message, type) {
+            const msgEl = document.getElementById(elementId);
+            msgEl.innerHTML = `<div class="message ${type}">${message}</div>`;
+            setTimeout(() => {
+                msgEl.innerHTML = '';
+            }, 5000);
+        }
+
+        // Auth handlers
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                showMessage('entry-message', 'Please enter email and password', 'error');
+                return;
+            }
+
+            try {
+                // In production, use AWS Cognito SDK for proper authentication
+                // For now, we're simulating with a mock token
+                idToken = 'mock-token-' + Date.now();
+                userEmail = email;
+                localStorage.setItem('idToken', idToken);
+                localStorage.setItem('userEmail', userEmail);
+                showAppView();
+            } catch (error) {
+                showMessage('entry-message', 'Login failed: ' + error.message, 'error');
+            }
+        }
+
+        async function handleSignup() {
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirm = document.getElementById('signup-confirm').value;
+
+            if (!email || !password || !confirm) {
+                showMessage('entry-message', 'Please fill in all fields', 'error');
+                return;
+            }
+
+            if (password !== confirm) {
+                showMessage('entry-message', 'Passwords do not match', 'error');
+                return;
+            }
+
+            if (password.length < 8) {
+                showMessage('entry-message', 'Password must be at least 8 characters', 'error');
+                return;
+            }
+
+            try {
+                // In production, use AWS Cognito SDK for proper registration
+                // For now, we're simulating with a mock token
+                idToken = 'mock-token-' + Date.now();
+                userEmail = email;
+                localStorage.setItem('idToken', idToken);
+                localStorage.setItem('userEmail', userEmail);
+                showAppView();
+            } catch (error) {
+                showMessage('entry-message', 'Signup failed: ' + error.message, 'error');
+            }
+        }
+
+        function handleLogout() {
+            idToken = null;
+            userEmail = null;
+            localStorage.removeItem('idToken');
+            localStorage.removeItem('userEmail');
+            showLogin();
+        }
+
+        // Data submission
+        async function handleSubmitSighting() {
+            const date = document.getElementById('sighting-date').value;
+            const count = document.getElementById('sighting-count').value;
+
+            if (!date || !count) {
+                showMessage('entry-message', 'Please enter both date and count', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_GATEWAY_URL + '/sightings', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + idToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        date: date,
+                        count: parseInt(count)
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Server returned ' + response.status);
+                }
+
+                showMessage('entry-message', 'Sighting logged successfully! 🎉', 'success');
+                document.getElementById('sighting-date').value = '';
+                document.getElementById('sighting-count').value = '';
+            } catch (error) {
+                showMessage('entry-message', 'Error submitting sighting: ' + error.message, 'error');
+            }
+        }
+
+        // Data query
+        async function handleQuery() {
+            const startDate = document.getElementById('query-start-date').value;
+            const endDate = document.getElementById('query-end-date').value;
+
+            if (!startDate || !endDate) {
+                showMessage('query-message', 'Please enter both start and end dates', 'error');
+                return;
+            }
+
+            try {
+                document.getElementById('loading-query').classList.add('active');
+                document.getElementById('results').innerHTML = '';
+
+                const response = await fetch(
+                    API_GATEWAY_URL + '/sightings/query?startDate=' + startDate + '&endDate=' + endDate,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': 'Bearer ' + idToken,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error('Server returned ' + response.status);
+                }
+
+                const data = await response.json();
+
+                if (!data.items || data.items.length === 0) {
+                    document.getElementById('results').innerHTML = '<div class="results"><p>No sightings found in this date range.</p></div>';
+                } else {
+                    let html = '<div class="results"><h3>Sightings: ' + startDate + ' to ' + endDate + '</h3>';
+                    let totalCount = 0;
+
+                    data.items.forEach(item => {
+                        html += '<div class="result-item">';
+                        html += '<p class="date">' + item.date + '</p>';
+                        html += '<p><span class="count">' + item.count + '</span> Subarus seen</p>';
+                        html += '</div>';
+                        totalCount += item.count;
+                    });
+
+                    html += '<div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #ddd;">';
+                    html += '<p><strong>Total Subarus:</strong> <span style="font-size: 24px; color: #764ba2;">' + totalCount + '</span></p>';
+                    html += '</div></div>';
+
+                    document.getElementById('results').innerHTML = html;
+                    showMessage('query-message', 'Found ' + data.items.length + ' sighting(s)!', 'success');
+                }
+            } catch (error) {
+                showMessage('query-message', 'Error querying sightings: ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading-query').classList.remove('active');
+            }
+        }
+
+        // Set today's date as default
+        window.addEventListener('load', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('sighting-date').value = today;
+        });
+    </script>
+</body>
+</html>
