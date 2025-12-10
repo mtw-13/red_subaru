@@ -48,7 +48,7 @@ resource "aws_s3_bucket_policy" "frontend" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "AllowCloudFront"
+        Sid    = "AllowCloudFrontGetObjectOnlyFromThisDistribution"
         Effect = "Allow"
         Principal = {
           Service = "cloudfront.amazonaws.com"
@@ -57,7 +57,7 @@ resource "aws_s3_bucket_policy" "frontend" {
         Resource = "${aws_s3_bucket.frontend.arn}/*"
         Condition = {
           StringEquals = {
-            "AWS:SourceArn" = aws_cloudfront_distribution.frontend.arn
+            "AWS:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.frontend.id}"
           }
         }
       }
@@ -69,7 +69,7 @@ resource "aws_s3_bucket_policy" "frontend" {
 resource "aws_cloudfront_distribution" "frontend" {
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
-    origin_access_principal  = aws_cloudfront_origin_access_identity.frontend.iam_arn
+    origin_id                = "S3-frontend"
     origin_access_control_id = aws_cloudfront_origin_access_control.frontend.id
   }
 
@@ -80,7 +80,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = aws_s3_bucket.frontend.id
+    target_origin_id = "S3-frontend"
 
     forwarded_values {
       query_string = false
@@ -237,7 +237,7 @@ resource "aws_apigatewayv2_api" "main" {
 resource "aws_apigatewayv2_authorizer" "cognito" {
   api_id           = aws_apigatewayv2_api.main.id
   authorizer_type  = "JWT"
-  identity_source  = "$request.header.Authorization"
+  identity_sources = ["$request.header.Authorization"]
   name             = "cognito-authorizer"
 
   jwt_configuration {
@@ -358,18 +358,16 @@ resource "aws_lambda_function" "query" {
 resource "aws_apigatewayv2_integration" "data_entry" {
   api_id           = aws_apigatewayv2_api.main.id
   integration_type = "AWS_PROXY"
-  integration_method = "POST"
   payload_format_version = "2.0"
-  target = aws_lambda_function.data_entry.arn
+  integration_uri = "arn:aws:apigateway:${var.aws_region}:lambda:path/2015-03-31/functions/${aws_lambda_function.data_entry.arn}/invocations"
 }
 
 # API Gateway Integration for query
 resource "aws_apigatewayv2_integration" "query" {
   api_id           = aws_apigatewayv2_api.main.id
   integration_type = "AWS_PROXY"
-  integration_method = "POST"
   payload_format_version = "2.0"
-  target = aws_lambda_function.query.arn
+  integration_uri = "arn:aws:apigateway:${var.aws_region}:lambda:path/2015-03-31/functions/${aws_lambda_function.query.arn}/invocations"
 }
 
 # API Gateway Route for POST /sightings
