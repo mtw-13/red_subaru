@@ -57,7 +57,7 @@ resource "aws_s3_bucket_policy" "frontend" {
         Resource = "${aws_s3_bucket.frontend.arn}/*"
         Condition = {
           StringEquals = {
-            "AWS:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.frontend.id}"
+            "AWS:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:origin-access-control/${aws_cloudfront_origin_access_control.frontend.id}"
           }
         }
       }
@@ -119,9 +119,7 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
   signing_protocol                  = "sigv4"
 }
 
-resource "aws_cloudfront_origin_access_identity" "frontend" {
-  comment = "RedSubaru frontend OAI"
-}
+
 
 # Cognito User Pool
 resource "aws_cognito_user_pool" "main" {
@@ -450,6 +448,11 @@ resource "aws_lambda_permission" "api_query" {
 data "aws_caller_identity" "current" {}
 
 # Outputs
+output "api_gateway_url" {
+  description = "Invoke URL for API Gateway"
+  value       = "https://${aws_apigatewayv2_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${aws_apigatewayv2_stage.main.name}"
+}
+
 output "s3_bucket_name" {
   description = "S3 bucket for frontend hosting"
   value       = aws_s3_bucket.frontend.id

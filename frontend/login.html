@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Red Subaru Tracker</title>
+    <style>
+        body { font-family: sans-serif; background: #f8f9fa; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); text-align: center; }
+        .btn-primary { background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        .btn-primary:hover { background: #5568d3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sign in to Red Subaru Tracker</h1>
+        <button class="btn-primary" onclick="startCognitoLogin()">Sign in with AWS Cognito</button>
+    </div>
+    <script>
+        function startCognitoLogin() {
+            const url = "https://us-east-1rwctlk5gl.auth.us-east-1.amazoncognito.com/login?client_id=2goq5vkpmfkfkfcb2j9avh0l9&response_type=code&scope=email+openid+phone&redirect_uri=http%3A%2F%2Flocalhost%3A3000";
+            window.location.href = url;
+        }
+    </script>
+</body>
+</html>

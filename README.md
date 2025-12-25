@@ -66,7 +66,9 @@ cd red_subaru
 
 ### 2. Prepare Lambda Functions
 
-The Lambda functions need to be packaged as ZIP files for Terraform:
+The Lambda functions need to be packaged as ZIP files for Terraform.
+
+Linux / macOS (bash):
 
 ```bash
 # Data Entry Lambda
@@ -80,6 +82,22 @@ cd lambda/query
 pip install -q boto3 -t .
 zip -r ../../terraform/query_lambda.zip .
 cd ../..
+```
+
+Windows (PowerShell):
+
+```powershell
+# From repo root
+# Uses built-in Compress-Archive; no need to bundle boto3 (included in Lambda runtime)
+Compress-Archive -Path lambda\data-entry\* -DestinationPath terraform\data_entry_lambda.zip -Force
+Compress-Archive -Path lambda\query\* -DestinationPath terraform\query_lambda.zip -Force
+```
+
+Or run the provided helper script:
+
+```powershell
+# Interactive deployment helper (creates ZIPs, runs Terraform)
+.\deploy.ps1
 ```
 
 ### 3. Deploy Infrastructure with Terraform
