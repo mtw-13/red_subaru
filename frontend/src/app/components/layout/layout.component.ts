@@ -1,8 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewChild, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,10 +26,13 @@ import { MatButtonModule } from '@angular/material/button';
         <button mat-icon-button (click)="sidenav.toggle()" class="menu-button">
           <mat-icon>menu</mat-icon>
         </button>
-        <span class="app-title">🚗 Red Subaru Tracker</span>
+        <span class="app-title">🚗 <span class="title-text">Red Subaru Tracker</span></span>
         <span class="spacer"></span>
         <span class="user-nickname">{{ getUserNickname() }}</span>
-        <button mat-button (click)="signOut()">
+        <button mat-icon-button (click)="signOut()" class="logout-btn-mobile">
+          <mat-icon>logout</mat-icon>
+        </button>
+        <button mat-button (click)="signOut()" class="logout-btn-desktop">
           <mat-icon>logout</mat-icon>
           Logout
         </button>
@@ -38,13 +41,13 @@ import { MatButtonModule } from '@angular/material/button';
       <div class="content-wrapper">
         <!-- Side Navigation -->
         <mat-sidenav-container class="sidenav-container">
-          <mat-sidenav #sidenav mode="side" [opened]="true" class="app-sidenav">
+          <mat-sidenav #sidenav [mode]="isMobile ? 'over' : 'side'" [opened]="!isMobile" class="app-sidenav">
             <mat-nav-list>
-              <a mat-list-item routerLink="/track" routerLinkActive="active-link">
+              <a mat-list-item routerLink="/track" routerLinkActive="active-link" (click)="onNavClick()">
                 <mat-icon matListItemIcon>add_location</mat-icon>
                 <span matListItemTitle>Track Sighting</span>
               </a>
-              <a mat-list-item routerLink="/leaderboard" routerLinkActive="active-link">
+              <a mat-list-item routerLink="/leaderboard" routerLinkActive="active-link" (click)="onNavClick()">
                 <mat-icon matListItemIcon>leaderboard</mat-icon>
                 <span matListItemTitle>Leaderboard</span>
               </a>
@@ -67,6 +70,12 @@ import { MatButtonModule } from '@angular/material/button';
     </div>
   `,
   styles: [`
+    .dashboard-container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
     .app-toolbar {
       position: sticky;
       top: 0;
@@ -74,7 +83,7 @@ import { MatButtonModule } from '@angular/material/button';
     }
 
     .menu-button {
-      margin-right: 16px;
+      margin-right: 8px;
     }
 
     .app-title {
@@ -87,10 +96,24 @@ import { MatButtonModule } from '@angular/material/button';
     }
 
     .user-nickname {
-      margin-right: 16px;
+      margin-right: 8px;
       font-size: 0.875rem;
       opacity: 0.9;
       font-weight: 500;
+    }
+
+    .logout-btn-mobile {
+      display: none;
+    }
+
+    .logout-btn-desktop {
+      display: inline-flex;
+    }
+
+    .content-wrapper {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
     }
 
     .sidenav-container {
@@ -130,20 +153,80 @@ import { MatButtonModule } from '@angular/material/button';
       }
     }
 
+    .main-content {
+      padding: 16px;
+      overflow-y: auto;
+    }
+
     @media (max-width: 768px) {
+      .app-title .title-text {
+        display: none;
+      }
+
       .user-nickname {
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .logout-btn-mobile {
+        display: inline-flex;
+      }
+
+      .logout-btn-desktop {
         display: none;
       }
       
       .app-sidenav {
         width: 200px;
       }
+
+      .main-content {
+        padding: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .menu-button {
+        margin-right: 4px;
+      }
+
+      .user-nickname {
+        display: none;
+      }
+
+      .main-content {
+        padding: 8px;
+      }
     }
   `]
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit {
   @Input() user: any;
   @Input() signOut!: () => void;
+  @ViewChild('sidenav') sidenav!: MatSidenav;
+  
+  isMobile = false;
+
+  ngOnInit(): void {
+    this.checkScreenSize();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.checkScreenSize();
+  }
+
+  checkScreenSize(): void {
+    this.isMobile = window.innerWidth < 768;
+  }
+
+  onNavClick(): void {
+    if (this.isMobile) {
+      this.sidenav.close();
+    }
+  }
 
   getUserNickname(): string {
     // Try to get nickname from user attributes

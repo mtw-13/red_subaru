@@ -42,6 +42,24 @@ body {
   --amplify-components-button-primary-background-color: #c62828;
   --amplify-components-button-primary-hover-background-color: #b71c1c;
   --amplify-colors-brand-primary-80: #c62828;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  [data-amplify-authenticator] {
+    padding: 8px;
+    
+    [data-amplify-router] {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 8px;
+    }
+  }
 }
 
 // Dashboard layout
@@ -57,13 +75,6 @@ body {
   overflow: hidden;
 }
 
-.main-content {
-  flex: 1;
-  padding: 24px;
-  overflow-y: auto;
-  background-color: #fafafa;
-}
-
 // Card styles
 .dashboard-card {
   margin-bottom: 24px;
@@ -77,6 +88,9 @@ body {
     .mat-mdc-card-title {
       color: white;
       margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
   }
   
@@ -120,5 +134,40 @@ body {
 @media (max-width: 768px) {
   .main-content {
     padding: 16px;
+  }
+
+  .dashboard-card {
+    margin-bottom: 16px;
+    
+    .mat-mdc-card-header {
+      padding: 12px 16px;
+      
+      .mat-mdc-card-title {
+        font-size: 1rem;
+      }
+    }
+    
+    .mat-mdc-card-content {
+      padding: 16px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-card {
+    margin-bottom: 12px;
+    border-radius: 8px;
+    
+    .mat-mdc-card-header {
+      padding: 10px 12px;
+    }
+    
+    .mat-mdc-card-content {
+      padding: 12px;
+    }
+  }
+
+  .form-field-full {
+    margin-bottom: 12px;
   }
 }

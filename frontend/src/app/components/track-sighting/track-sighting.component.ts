@@ -112,8 +112,15 @@ import { SightingService } from '../../services/sighting.service';
       padding: 12px;
       font-size: 1rem;
       
+      span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
       mat-icon {
         margin-right: 8px;
+        vertical-align: middle;
       }
       
       mat-spinner {
@@ -158,6 +165,32 @@ import { SightingService } from '../../services/sighting.service';
         &:last-child {
           border-bottom: none;
         }
+      }
+    }
+
+    /* Mobile responsive styles */
+    @media (max-width: 600px) {
+      .submit-button {
+        padding: 10px;
+        font-size: 0.9rem;
+      }
+
+      .recent-sightings {
+        margin-top: 16px;
+        padding: 12px;
+
+        h3 {
+          font-size: 0.9rem;
+        }
+
+        p {
+          font-size: 0.9rem;
+        }
+      }
+
+      .tips-list li {
+        padding: 10px 0;
+        font-size: 0.9rem;
       }
     }
   `]

@@ -136,6 +136,11 @@ import { SightingService, LeaderboardEntry } from '../../services/sighting.servi
 
     .leaderboard-table {
       width: 100%;
+      table-layout: fixed;
+      
+      th, td {
+        width: 33.33%;
+      }
       
       th {
         font-weight: 600;
@@ -144,14 +149,8 @@ import { SightingService, LeaderboardEntry } from '../../services/sighting.servi
     }
 
     .rank-cell {
-      width: 80px;
       text-align: center;
-      font-size: 1.25rem;
     }
-
-    .rank-1 { color: #ffc107; }
-    .rank-2 { color: #9e9e9e; }
-    .rank-3 { color: #cd7f32; }
 
     .user-cell {
       display: flex;
@@ -229,6 +228,47 @@ import { SightingService, LeaderboardEntry } from '../../services/sighting.servi
       .stat-label {
         color: #666;
         font-size: 0.875rem;
+      }
+    }
+
+    /* Mobile responsive styles */
+    @media (max-width: 600px) {
+      .leaderboard-table {
+        font-size: 0.9rem;
+      }
+
+      .rank-cell {
+        width: 50px;
+        font-size: 1rem;
+      }
+
+      .user-cell, .count-cell {
+        gap: 4px;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .stat-item {
+        padding: 12px;
+
+        .stat-value {
+          font-size: 1.5rem;
+        }
+      }
+
+      .leaderboard-footer {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
       }
     }
   `]
