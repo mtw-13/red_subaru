@@ -88,6 +88,16 @@ output "lambda_role_arn" {
   value       = aws_iam_role.lambda_role.arn
 }
 
+output "api_gateway_url" {
+  description = "API Gateway URL"
+  value       = aws_apigatewayv2_stage.main.invoke_url
+}
+
+output "api_gateway_id" {
+  description = "API Gateway ID"
+  value       = aws_apigatewayv2_api.main.id
+}
+
 # Environment variables for the React app
 output "react_env_vars" {
   description = "Environment variables for React application"
@@ -96,7 +106,7 @@ output "react_env_vars" {
     VITE_COGNITO_USER_POOL_ID=${aws_cognito_user_pool.main.id}
     VITE_COGNITO_CLIENT_ID=${aws_cognito_user_pool_client.spa.id}
     VITE_COGNITO_REGION=${var.aws_region}
-    VITE_API_URL=https://your-api-gateway-url
+    VITE_API_URL=${aws_apigatewayv2_stage.main.invoke_url}
     VITE_CLOUDFRONT_URL=https://${aws_cloudfront_distribution.static_site.domain_name}
     DYNAMODB_SIGHTINGS_TABLE=${aws_dynamodb_table.sightings.name}
     DYNAMODB_USERS_TABLE=${aws_dynamodb_table.users.name}

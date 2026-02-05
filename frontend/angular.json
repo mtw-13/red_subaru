@@ -27,6 +27,7 @@
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": [
               "@angular/material/prebuilt-themes/indigo-pink.css",
+              "node_modules/@aws-amplify/ui-angular/theme.css",
               "src/styles.scss"
             ],
             "scripts": []
@@ -64,5 +65,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
