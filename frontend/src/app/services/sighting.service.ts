@@ -29,8 +29,21 @@ export interface LeaderboardEntry {
   totalCount: number;
 }
 
+export interface Winner {
+  userId: string;
+  nickname: string;
+  count: number;
+}
+
+export interface Winners {
+  daily: Winner | null;
+  monthly: Winner | null;
+  yearly: Winner | null;
+}
+
 export interface LeaderboardResponse {
   leaderboard: LeaderboardEntry[];
+  winners: Winners;
   totalUsers: number;
   lastUpdated: string;
 }

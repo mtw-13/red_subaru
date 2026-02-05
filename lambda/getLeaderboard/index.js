@@ -1,6 +1,6 @@
 /**
  * API Gateway Lambda - Get Leaderboard
- * Scans sightings, aggregates by user, returns top 10
+ * Scans sightings, aggregates by user, returns top 10 and period winners
  */
 
 const { DynamoDBClient, ScanCommand, BatchGetItemCommand } = require('@aws-sdk/client-dynamodb');
@@ -17,6 +17,15 @@ const headers = {
   'Access-Control-Allow-Methods': 'GET,OPTIONS',
 };
 
+// Helper to get date boundaries
+function getDateBoundaries() {
+  const now = new Date();
+  const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  const currentMonth = today.slice(0, 7); // YYYY-MM
+  const currentYear = today.slice(0, 4); // YYYY
+  return { today, currentMonth, currentYear };
+}
+
 exports.handler = async (event) => {
   console.log('Get Leaderboard Event:', JSON.stringify(event, null, 2));
 
@@ -29,8 +38,9 @@ exports.handler = async (event) => {
   }
 
   try {
+    const { today, currentMonth, currentYear } = getDateBoundaries();
+
     // Scan all sightings from the table
-    // Using GSI1 to get all sightings efficiently
     const scanParams = {
       TableName: SIGHTINGS_TABLE,
       IndexName: 'GSI1',
@@ -38,9 +48,10 @@ exports.handler = async (event) => {
       ExpressionAttributeValues: {
         ':pk': { S: 'SIGHTING' },
       },
-      ProjectionExpression: 'userId, #cnt',
+      ProjectionExpression: 'userId, #cnt, #dt',
       ExpressionAttributeNames: {
         '#cnt': 'count',
+        '#dt': 'date',
       },
     };
 
@@ -60,15 +71,35 @@ exports.handler = async (event) => {
 
     console.log(`Scanned ${items.length} sightings`);
 
-    // Aggregate sightings by userId
+    // Aggregate sightings by userId for different time periods
     const userTotals = {};
+    const dailyTotals = {};
+    const monthlyTotals = {};
+    const yearlyTotals = {};
 
     for (const item of items) {
       const userId = item.userId?.S;
       const count = parseInt(item.count?.N || '0', 10);
+      const date = item.date?.S || '';
 
       if (userId) {
+        // All-time totals
         userTotals[userId] = (userTotals[userId] || 0) + count;
+
+        // Daily totals (today only)
+        if (date === today) {
+          dailyTotals[userId] = (dailyTotals[userId] || 0) + count;
+        }
+
+        // Monthly totals (current month)
+        if (date.startsWith(currentMonth)) {
+          monthlyTotals[userId] = (monthlyTotals[userId] || 0) + count;
+        }
+
+        // Yearly totals (current year)
+        if (date.startsWith(currentYear)) {
+          yearlyTotals[userId] = (yearlyTotals[userId] || 0) + count;
+        }
       }
     }
 
@@ -129,11 +160,30 @@ exports.handler = async (event) => {
       totalCount: entry.totalCount,
     }));
 
+    // Helper to get top winner from totals
+    const getWinner = (totals) => {
+      const entries = Object.entries(totals);
+      if (entries.length === 0) return null;
+      const [userId, count] = entries.sort((a, b) => b[1] - a[1])[0];
+      return {
+        userId,
+        nickname: userNicknames[userId] || `User-${userId.slice(0, 6)}`,
+        count,
+      };
+    };
+
+    const winners = {
+      daily: getWinner(dailyTotals),
+      monthly: getWinner(monthlyTotals),
+      yearly: getWinner(yearlyTotals),
+    };
+
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         leaderboard: rankedLeaderboard,
+        winners,
         totalUsers: Object.keys(userTotals).length,
         lastUpdated: new Date().toISOString(),
       }),

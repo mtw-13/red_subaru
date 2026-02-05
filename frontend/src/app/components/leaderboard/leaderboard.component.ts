@@ -5,7 +5,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
-import { SightingService, LeaderboardEntry } from '../../services/sighting.service';
+import { SightingService, LeaderboardEntry, Winners } from '../../services/sighting.service';
 
 @Component({
   selector: 'app-leaderboard',
@@ -106,6 +106,48 @@ import { SightingService, LeaderboardEntry } from '../../services/sighting.servi
             <mat-icon>directions_car</mat-icon>
             <div class="stat-value">{{ getTotalSightings() }}</div>
             <div class="stat-label">Total Sightings</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dashboard-card winners-card" *ngIf="winners">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>emoji_events</mat-icon>
+          Top Spotters
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="winners-grid">
+          <div class="winner-item" *ngIf="winners.daily">
+            <div class="winner-period">🌅 Today's Leader</div>
+            <div class="winner-name">{{ winners.daily.nickname }}</div>
+            <div class="winner-count">{{ winners.daily.count }} sightings</div>
+          </div>
+          <div class="winner-item no-winner" *ngIf="!winners.daily">
+            <div class="winner-period">🌅 Today's Leader</div>
+            <div class="winner-name">No sightings yet</div>
+          </div>
+          
+          <div class="winner-item" *ngIf="winners.monthly">
+            <div class="winner-period">📅 This Month</div>
+            <div class="winner-name">{{ winners.monthly.nickname }}</div>
+            <div class="winner-count">{{ winners.monthly.count }} sightings</div>
+          </div>
+          <div class="winner-item no-winner" *ngIf="!winners.monthly">
+            <div class="winner-period">📅 This Month</div>
+            <div class="winner-name">No sightings yet</div>
+          </div>
+          
+          <div class="winner-item" *ngIf="winners.yearly">
+            <div class="winner-period">🏆 This Year</div>
+            <div class="winner-name">{{ winners.yearly.nickname }}</div>
+            <div class="winner-count">{{ winners.yearly.count }} sightings</div>
+          </div>
+          <div class="winner-item no-winner" *ngIf="!winners.yearly">
+            <div class="winner-period">🏆 This Year</div>
+            <div class="winner-name">No sightings yet</div>
           </div>
         </div>
       </mat-card-content>
@@ -231,6 +273,49 @@ import { SightingService, LeaderboardEntry } from '../../services/sighting.servi
       }
     }
 
+    .winners-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .winner-item {
+      text-align: center;
+      padding: 16px;
+      background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+      border-radius: 12px;
+      border: 2px solid #fbc02d;
+      
+      .winner-period {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 8px;
+      }
+      
+      .winner-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 4px;
+      }
+      
+      .winner-count {
+        font-size: 0.85rem;
+        color: #c62828;
+        font-weight: 500;
+      }
+      
+      &.no-winner {
+        background: #f5f5f5;
+        border-color: #e0e0e0;
+        
+        .winner-name {
+          color: #999;
+          font-weight: normal;
+        }
+      }
+    }
+
     /* Mobile responsive styles */
     @media (max-width: 600px) {
       .leaderboard-table {
@@ -265,6 +350,15 @@ import { SightingService, LeaderboardEntry } from '../../services/sighting.servi
         }
       }
 
+      .winners-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .winner-item {
+        padding: 12px;
+      }
+
       .leaderboard-footer {
         flex-direction: column;
         gap: 8px;
@@ -280,6 +374,7 @@ export class LeaderboardComponent implements OnInit {
   error: string | null = null;
   lastUpdated: Date | null = null;
   totalUsers = 0;
+  winners: Winners | null = null;
 
   constructor(private sightingService: SightingService) {}
 
@@ -295,6 +390,7 @@ export class LeaderboardComponent implements OnInit {
       next: (response) => {
         this.leaderboard = response.leaderboard;
         this.totalUsers = response.totalUsers;
+        this.winners = response.winners;
         this.lastUpdated = new Date(response.lastUpdated);
         this.isLoading = false;
       },
