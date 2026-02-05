@@ -51,6 +51,19 @@ resource "aws_cognito_user_pool" "main" {
     }
   }
 
+  schema {
+    name                     = "nickname"
+    attribute_data_type      = "String"
+    required                 = false
+    mutable                  = true
+    developer_only_attribute = false
+
+    string_attribute_constraints {
+      min_length = 1
+      max_length = 50
+    }
+  }
+
   # Email configuration
   email_configuration {
     email_sending_account = "COGNITO_DEFAULT"
@@ -135,6 +148,6 @@ resource "aws_cognito_user_pool_client" "spa" {
   prevent_user_existence_errors = "ENABLED"
 
   # Read and write attributes
-  read_attributes  = ["email", "name", "email_verified"]
-  write_attributes = ["email", "name"]
+  read_attributes  = ["email", "name", "nickname", "email_verified"]
+  write_attributes = ["email", "name", "nickname"]
 }

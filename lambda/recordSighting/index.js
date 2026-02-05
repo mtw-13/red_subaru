@@ -21,8 +21,11 @@ const headers = {
 exports.handler = async (event) => {
   console.log('Record Sighting Event:', JSON.stringify(event, null, 2));
 
+  // Get HTTP method (support both v1 and v2 API Gateway formats)
+  const httpMethod = event.httpMethod || event.requestContext?.http?.method;
+
   // Handle CORS preflight
-  if (event.httpMethod === 'OPTIONS') {
+  if (httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
   }
 

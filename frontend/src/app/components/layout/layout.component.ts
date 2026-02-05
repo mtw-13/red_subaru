@@ -28,7 +28,7 @@ import { MatButtonModule } from '@angular/material/button';
         </button>
         <span class="app-title">🚗 Red Subaru Tracker</span>
         <span class="spacer"></span>
-        <span class="user-email">{{ user?.signInDetails?.loginId }}</span>
+        <span class="user-nickname">{{ getUserNickname() }}</span>
         <button mat-button (click)="signOut()">
           <mat-icon>logout</mat-icon>
           Logout
@@ -86,10 +86,11 @@ import { MatButtonModule } from '@angular/material/button';
       flex: 1;
     }
 
-    .user-email {
+    .user-nickname {
       margin-right: 16px;
       font-size: 0.875rem;
       opacity: 0.9;
+      font-weight: 500;
     }
 
     .sidenav-container {
@@ -130,7 +131,7 @@ import { MatButtonModule } from '@angular/material/button';
     }
 
     @media (max-width: 768px) {
-      .user-email {
+      .user-nickname {
         display: none;
       }
       
@@ -143,4 +144,18 @@ import { MatButtonModule } from '@angular/material/button';
 export class LayoutComponent {
   @Input() user: any;
   @Input() signOut!: () => void;
+
+  getUserNickname(): string {
+    // Try to get nickname from user attributes
+    const attrs = this.user?.attributes || {};
+    if (attrs.nickname) {
+      return attrs.nickname;
+    }
+    // Fallback to email prefix
+    const email = this.user?.signInDetails?.loginId || attrs.email;
+    if (email) {
+      return email.split('@')[0];
+    }
+    return 'Spotter';
+  }
 }

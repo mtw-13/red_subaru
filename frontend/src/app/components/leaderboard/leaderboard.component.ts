@@ -53,12 +53,12 @@ import { SightingService, LeaderboardEntry } from '../../services/sighting.servi
           </ng-container>
 
           <!-- User Column -->
-          <ng-container matColumnDef="userId">
-            <th mat-header-cell *matHeaderCellDef>User</th>
+          <ng-container matColumnDef="nickname">
+            <th mat-header-cell *matHeaderCellDef>Spotter</th>
             <td mat-cell *matCellDef="let entry">
               <div class="user-cell">
                 <mat-icon>person</mat-icon>
-                <span>{{ entry.userId | slice:0:8 }}...</span>
+                <span>{{ entry.nickname }}</span>
               </div>
             </td>
           </ng-container>
@@ -235,7 +235,7 @@ import { SightingService, LeaderboardEntry } from '../../services/sighting.servi
 })
 export class LeaderboardComponent implements OnInit {
   leaderboard: LeaderboardEntry[] = [];
-  displayedColumns = ['rank', 'userId', 'totalCount'];
+  displayedColumns = ['rank', 'nickname', 'totalCount'];
   isLoading = false;
   error: string | null = null;
   lastUpdated: Date | null = null;

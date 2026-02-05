@@ -13,5 +13,5 @@ variable "environment" {
 variable "allowed_origins" {
   description = "Allowed origins for CORS and Cognito callbacks"
   type        = list(string)
-  default     = ["http://localhost:3000"]
+  default     = ["http://localhost:3000", "http://localhost:4200", "http://localhost:5173"]
 }

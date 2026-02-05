@@ -17,7 +17,7 @@ exports.handler = async (event) => {
     return event;
   }
 
-  const { sub, email } = event.request.userAttributes;
+  const { sub, email, nickname } = event.request.userAttributes;
 
   if (!sub || !email) {
     console.error('Missing required attributes: sub or email');
@@ -29,6 +29,7 @@ exports.handler = async (event) => {
     Item: {
       userId: { S: sub },
       email: { S: email },
+      nickname: { S: nickname || email.split('@')[0] },
       createdAt: { S: new Date().toISOString() },
       totalSightings: { N: '0' },
     },

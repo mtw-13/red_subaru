@@ -25,6 +25,7 @@ export interface SightingResponse {
 export interface LeaderboardEntry {
   rank: number;
   userId: string;
+  nickname: string;
   totalCount: number;
 }
 

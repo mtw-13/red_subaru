@@ -35,6 +35,7 @@ resource "aws_iam_policy" "lambda_dynamodb_policy" {
         Action = [
           "dynamodb:PutItem",
           "dynamodb:GetItem",
+          "dynamodb:BatchGetItem",
           "dynamodb:Scan",
           "dynamodb:Query",
           "dynamodb:UpdateItem"
@@ -144,6 +145,7 @@ resource "aws_lambda_function" "get_leaderboard" {
   environment {
     variables = {
       SIGHTINGS_TABLE = aws_dynamodb_table.sightings.name
+      USERS_TABLE     = aws_dynamodb_table.users.name
     }
   }
 

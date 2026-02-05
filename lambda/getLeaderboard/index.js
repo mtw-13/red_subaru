@@ -3,10 +3,11 @@
  * Scans sightings, aggregates by user, returns top 10
  */
 
-const { DynamoDBClient, ScanCommand } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBClient, ScanCommand, BatchGetItemCommand } = require('@aws-sdk/client-dynamodb');
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
 const SIGHTINGS_TABLE = process.env.SIGHTINGS_TABLE || 'RedSubaruSightings';
+const USERS_TABLE = process.env.USERS_TABLE || 'RedSubaruUsers';
 
 // CORS headers for API Gateway
 const headers = {
@@ -19,8 +20,11 @@ const headers = {
 exports.handler = async (event) => {
   console.log('Get Leaderboard Event:', JSON.stringify(event, null, 2));
 
+  // Get HTTP method (support both v1 and v2 API Gateway formats)
+  const httpMethod = event.httpMethod || event.requestContext?.http?.method;
+
   // Handle CORS preflight
-  if (event.httpMethod === 'OPTIONS') {
+  if (httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
   }
 
@@ -77,10 +81,52 @@ exports.handler = async (event) => {
       .sort((a, b) => b.totalCount - a.totalCount)
       .slice(0, 10); // Top 10
 
-    // Add rank
+    // Fetch nicknames for top users from users table
+    const userIds = leaderboard.map(entry => entry.userId);
+    let userNicknames = {};
+
+    console.log('USERS_TABLE:', USERS_TABLE);
+    console.log('User IDs to fetch:', userIds);
+
+    if (userIds.length > 0) {
+      try {
+        const batchGetParams = {
+          RequestItems: {
+            [USERS_TABLE]: {
+              Keys: userIds.map(userId => ({ userId: { S: userId } })),
+              ProjectionExpression: 'userId, nickname, email',
+            },
+          },
+        };
+
+        console.log('BatchGet params:', JSON.stringify(batchGetParams, null, 2));
+
+        const batchResponse = await client.send(new BatchGetItemCommand(batchGetParams));
+        console.log('BatchGet response:', JSON.stringify(batchResponse, null, 2));
+        
+        const users = batchResponse.Responses?.[USERS_TABLE] || [];
+
+        for (const user of users) {
+          const id = user.userId?.S;
+          const nickname = user.nickname?.S || user.email?.S?.split('@')[0] || 'Anonymous';
+          console.log(`User ${id} -> nickname: ${nickname}`);
+          if (id) {
+            userNicknames[id] = nickname;
+          }
+        }
+      } catch (err) {
+        console.error('Could not fetch user nicknames:', err.message, err.stack);
+      }
+    }
+
+    console.log('Final userNicknames map:', userNicknames);
+
+    // Add rank and nickname
     const rankedLeaderboard = leaderboard.map((entry, index) => ({
       rank: index + 1,
-      ...entry,
+      userId: entry.userId,
+      nickname: userNicknames[entry.userId] || `User-${entry.userId.slice(0, 6)}`,
+      totalCount: entry.totalCount,
     }));
 
     return {
