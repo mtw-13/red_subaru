@@ -73,7 +73,7 @@ import { SightingService } from '../../services/sighting.service';
             class="submit-button">
             <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
             <span *ngIf="!isSubmitting">
-              <mat-icon>save</mat-icon>
+              <mat-icon>visibility</mat-icon>
               Record Sighting
             </span>
           </button>

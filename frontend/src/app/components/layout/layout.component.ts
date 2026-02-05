@@ -26,7 +26,7 @@ import { MatButtonModule } from '@angular/material/button';
         <button mat-icon-button (click)="sidenav.toggle()" class="menu-button">
           <mat-icon>menu</mat-icon>
         </button>
-        <span class="app-title">🚗 <span class="title-text">Red Subaru Tracker</span></span>
+        <span class="app-title"><span class="header-car-icon"><mat-icon>directions_car</mat-icon></span> <span class="title-text">Red Subaru Tracker</span></span>
         <span class="spacer"></span>
         <span class="user-nickname">{{ getUserNickname() }}</span>
         <button mat-icon-button (click)="signOut()" class="logout-btn-mobile">
@@ -89,6 +89,25 @@ import { MatButtonModule } from '@angular/material/button';
     .app-title {
       font-size: 1.25rem;
       font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-car-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border-radius: 50%;
+      padding: 4px;
+      
+      mat-icon {
+        color: #c62828;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
     }
 
     .spacer {
