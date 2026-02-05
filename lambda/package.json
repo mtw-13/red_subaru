@@ -1,0 +1,15 @@
+{
+  "name": "red-subaru-lambda",
+  "version": "1.0.0",
+  "description": "Lambda functions for Red Subaru Tracker",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.400.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.119"
+  }
+}

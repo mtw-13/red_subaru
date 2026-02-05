@@ -1,317 +1,254 @@
-# Red Subaru Tracker - Serverless Web App
+# 🚗 Red Subaru Tracker
 
-A serverless web application for tracking red Subaru sightings. Users can sign in, log sightings with dates, and query statistics for date ranges.
+A full-stack serverless Single Page Application (SPA) to track "Red Subaru" sightings. Compete with friends to spot the most red Subarus!
 
-## Architecture
+## Features
 
-```
-User → Route 53 → CloudFront → S3 (index.html)
-                         ↓
-                  Cognito (Login)
-                         ↓
-                  API Gateway (Secured)
-                         ↓
-                    Lambda (Logic)
-                         ↓
-                   DynamoDB (Storage)
-```
+- **Authentication**: Secure login/signup with AWS Cognito (or mock auth for local dev)
+- **Sighting Logging**: Record date, count, location, and notes for each sighting
+- **Leaderboard**: See who has spotted the most Red Subarus
+- **Responsive Design**: Works on desktop and mobile devices
 
-## Components
+## Tech Stack
 
 ### Frontend
-- **S3 + CloudFront**: Hosts the static web app with HTTPS and caching
-- **Cognito**: User authentication and token generation
-- **HTML/CSS/JS**: Responsive UI for login, data entry, and querying
+- **React 18** with TypeScript
+- **Vite** for fast development and building
+- **Amazon Cognito Identity JS** for authentication
+- **Axios** for API calls
 
 ### Backend
-- **API Gateway**: HTTP endpoints with Cognito JWT authorization
-- **Lambda Functions**:
-  - `data-entry`: Receives POST requests with sighting data, validates tokens, stores in DynamoDB
-  - `query`: Handles GET requests to retrieve statistics for date ranges
-- **DynamoDB**: NoSQL database for storing sighting records
+- **AWS Lambda** (Node.js) for API endpoints
+- **Amazon API Gateway** (REST API)
+- **AWS Cognito** for authentication
 
-## Prerequisites
+### Database
+- **Amazon RDS** (PostgreSQL) for data storage
 
-- AWS Account with appropriate permissions
-- Terraform >= 1.0
-- AWS CLI configured with credentials
-- Python 3.11 (for local Lambda testing)
+### Infrastructure
+- **Amazon S3** for static hosting
+- **Amazon CloudFront** for CDN distribution
 
-## File Structure
+## Project Structure
 
 ```
 red_subaru/
-├── frontend/
-│   └── index.html           # Single-page app with Cognito SDK
-├── lambda/
-│   ├── data-entry/
-│   │   └── lambda_function.py  # POST handler
-│   └── query/
-│       └── lambda_function.py  # GET handler
-├── terraform/
-│   ├── main.tf              # Infrastructure definition
-│   └── variables.tf         # Configuration variables
-├── README.md                # This file
-└── deploy.sh                # Deployment script
+├── src/                    # Frontend React application
+│   ├── components/         # React components
+│   │   ├── Auth/           # Login, SignUp, AuthContainer
+│   │   ├── Header/         # App header with user info
+│   │   ├── Leaderboard/    # Leaderboard display
+│   │   └── SightingForm/   # Form to log sightings
+│   ├── context/            # React Context (AuthContext)
+│   ├── pages/              # Page components (Dashboard)
+│   ├── services/           # API and Auth services
+│   ├── types.ts            # TypeScript type definitions
+│   └── config.ts           # App configuration
+├── lambda/                 # AWS Lambda functions
+│   ├── postSighting/       # POST /sightings endpoint
+│   ├── getSightings/       # GET /sightings endpoint
+│   ├── getLeaderboard/     # GET /leaderboard endpoint
+│   ├── cognitoPostConfirmation/  # Cognito trigger
+│   ├── shared/             # Shared utilities (db, response)
+│   └── local-server.js     # Local Express server for testing
+├── database/               # Database schemas
+│   ├── schema.sql          # PostgreSQL schema
+│   └── seed.sql            # Test data
+├── scripts/                # Utility scripts
+│   └── migrate.js          # Database migration script
+└── docker-compose.yml      # Local PostgreSQL setup
 ```
 
-## Setup Instructions
+## Getting Started
 
-### 1. Clone the Repository
+### Prerequisites
+
+- Node.js 18+
+- Docker (for local PostgreSQL)
+- npm or yarn
+
+### Local Development Setup
+
+1. **Clone and install dependencies**
+   ```bash
+   npm install
+   cd lambda && npm install && cd ..
+   ```
+
+2. **Start the local database**
+   ```bash
+   npm run db:start
+   ```
+   This starts PostgreSQL with the schema and seed data.
+
+3. **Start the backend API server**
+   ```bash
+   cd lambda
+   npm run local
+   ```
+   The API will be available at http://localhost:4000
+
+4. **Start the frontend development server**
+   ```bash
+   npm run dev
+   ```
+   The app will be available at http://localhost:3000
+
+### Local Testing
+
+For local development, the app uses **mock authentication** by default. You can sign in with any email/password combination. The mock user is synced with the test data in the database.
+
+### Environment Variables
+
+Copy `.env.example` to `.env` and configure:
 
 ```bash
-git clone https://github.com/mtw-13/red_subaru.git
-cd red_subaru
-```
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=red_subaru
+DB_USER=postgres
+DB_PASSWORD=postgres
 
-### 2. Prepare Lambda Functions
+# Frontend
+VITE_USE_MOCK_AUTH=true  # Set to 'false' for real Cognito
 
-The Lambda functions need to be packaged as ZIP files for Terraform.
-
-Linux / macOS (bash):
-
-```bash
-# Data Entry Lambda
-cd lambda/data-entry
-pip install -q boto3 -t .
-zip -r ../../terraform/data_entry_lambda.zip .
-cd ../..
-
-# Query Lambda
-cd lambda/query
-pip install -q boto3 -t .
-zip -r ../../terraform/query_lambda.zip .
-cd ../..
-```
-
-Windows (PowerShell):
-
-```powershell
-# From repo root
-# Uses built-in Compress-Archive; no need to bundle boto3 (included in Lambda runtime)
-Compress-Archive -Path lambda\data-entry\* -DestinationPath terraform\data_entry_lambda.zip -Force
-Compress-Archive -Path lambda\query\* -DestinationPath terraform\query_lambda.zip -Force
-```
-
-Or run the provided helper script:
-
-```powershell
-# Interactive deployment helper (creates ZIPs, runs Terraform)
-.\deploy.ps1
-```
-
-### 3. Deploy Infrastructure with Terraform
-
-```bash
-cd terraform
-
-# Initialize Terraform
-terraform init
-
-# Review changes
-terraform plan
-
-# Apply configuration
-terraform apply
-```
-
-This will:
-- Create S3 bucket for frontend hosting
-- Set up CloudFront distribution
-- Create Cognito user pool and client
-- Deploy DynamoDB table
-- Create API Gateway with authorizers
-- Deploy Lambda functions
-- Configure all IAM roles and policies
-
-### 4. Deploy Frontend
-
-After Terraform deployment, retrieve the S3 bucket name from outputs:
-
-```bash
-# Get S3 bucket name
-S3_BUCKET=$(terraform output -raw s3_bucket_name)
-
-# Upload index.html to S3
-aws s3 cp ../frontend/index.html s3://$S3_BUCKET/index.html --content-type "text/html"
-```
-
-### 5. Configure Frontend
-
-Update the frontend configuration in `index.html` with your AWS resources:
-
-```javascript
-// In index.html, update these constants:
-const API_GATEWAY_URL = 'https://YOUR-API-ENDPOINT-HERE'; // From terraform output
-const COGNITO_CLIENT_ID = 'YOUR-CLIENT-ID'; // From terraform output
-const COGNITO_DOMAIN = 'https://your-domain.auth.region.amazoncognito.com';
-const COGNITO_REGION = 'us-east-1'; // Your AWS region
+# Cognito (for production)
+VITE_COGNITO_REGION=us-east-1
+VITE_COGNITO_USER_POOL_ID=your-user-pool-id
+VITE_COGNITO_CLIENT_ID=your-client-id
 ```
 
 ## API Endpoints
 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/api/sightings` | Create a new sighting | Required |
+| GET | `/api/sightings` | Get user's sightings | Required |
+| GET | `/api/leaderboard` | Get leaderboard | Public |
+| GET | `/api/health` | Health check | Public |
+
 ### POST /sightings
-Log a new sighting
 
-**Request:**
 ```json
 {
-  "date": "2025-12-08",
-  "count": 3
+  "sightingDate": "2024-01-15",
+  "count": 3,
+  "location": "Main Street",
+  "notes": "Spotted near downtown"
 }
 ```
 
-**Headers:**
-```
-Authorization: Bearer <cognito-id-token>
-Content-Type: application/json
-```
+### GET /leaderboard
 
-**Response:**
+Query params: `limit` (default: 10, max: 100)
+
+Response:
 ```json
 {
-  "message": "Sighting recorded successfully",
-  "data": {
-    "user_email": "user@example.com",
-    "date": "2025-12-08",
-    "count": 3,
-    "timestamp": "2025-12-08T15:30:45.123456"
-  }
-}
-```
-
-### GET /sightings/query
-Query sightings within a date range
-
-**Query Parameters:**
-- `startDate`: YYYY-MM-DD
-- `endDate`: YYYY-MM-DD
-
-**Headers:**
-```
-Authorization: Bearer <cognito-id-token>
-```
-
-**Response:**
-```json
-{
-  "items": [
+  "leaderboard": [
     {
-      "date": "2025-12-07",
-      "count": 2,
-      "user_email": "user@example.com"
-    },
-    {
-      "date": "2025-12-08",
-      "count": 3,
-      "user_email": "user@example.com"
+      "rank": 1,
+      "userId": "uuid",
+      "username": "Alice",
+      "totalSightings": 15,
+      "sightingEntries": 5,
+      "lastSightingDate": "2024-01-20"
     }
   ],
-  "count": 2,
-  "startDate": "2025-12-07",
-  "endDate": "2025-12-08"
+  "total": 1
 }
 ```
 
-## User Flow
+## Database Schema
 
-1. **Visit**: User opens CloudFront URL
-2. **Sign Up/Login**: Creates account or logs in via Cognito
-3. **Get Token**: JavaScript receives ID token from Cognito
-4. **Log Sighting**: Enters date and Subaru count, POST sent with token in Authorization header
-5. **API Validation**: API Gateway validates token with Cognito
-6. **Store Data**: Lambda receives request, validates, adds timestamp, writes to DynamoDB
-7. **Query**: User enters date range and gets statistics
-8. **Retrieve**: Lambda queries DynamoDB and returns results
-
-## Security
-
-- **Authentication**: AWS Cognito handles user sign-up and login
-- **Authorization**: API Gateway validates JWT tokens before routing to Lambda
-- **HTTPS**: CloudFront enforces HTTPS for all traffic
-- **Data Isolation**: DynamoDB queries filter by user email, ensuring users only see their own data
-- **Private Bucket**: S3 bucket is not publicly accessible; CloudFront is the only entry point
-- **IAM Least Privilege**: Lambda functions have minimal permissions (DynamoDB access only)
-
-## Monitoring
-
-CloudWatch Logs are automatically configured for:
-- API Gateway requests and responses
-- Lambda function executions
-- Errors and exceptions
-
-View logs in AWS Console:
-```bash
-# View API logs
-aws logs tail /aws/apigateway/red-subaru-api --follow
-
-# View Lambda logs
-aws logs tail /aws/lambda/red-subaru-data-entry --follow
-aws logs tail /aws/lambda/red-subaru-query --follow
+### Users Table
+```sql
+CREATE TABLE users (
+    id UUID PRIMARY KEY,
+    cognito_sub VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(100),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
 ```
 
-## Cost Estimation
-
-**Monthly costs (estimated for light usage):**
-- **S3**: $0.50 (storage) + $0.10 (requests)
-- **CloudFront**: $0.085/GB (typically ~$1-5)
-- **Cognito**: Free tier (up to 50,000 MAU)
-- **API Gateway**: $0.35 per million requests (~$0-5)
-- **Lambda**: Free tier (1M requests/month, 400,000 GB-seconds) → $0-2
-- **DynamoDB**: $1.25/GB per month (on-demand pricing)
-
-**Typical total: $3-15/month**
-
-## Cleanup
-
-To remove all resources and avoid charges:
-
-```bash
-# Delete S3 bucket contents
-aws s3 rm s3://red-subaru-tracker-ACCOUNT-ID --recursive
-
-# Destroy Terraform resources
-terraform destroy
+### Sightings Table
+```sql
+CREATE TABLE sightings (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    sighting_date DATE NOT NULL,
+    count INTEGER NOT NULL,
+    notes TEXT,
+    location VARCHAR(255),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
 ```
 
-## Troubleshooting
+## AWS Deployment
 
-### Cognito Token Errors
-- Ensure Client ID and Domain are correctly configured in `index.html`
-- Check that callback URLs in Cognito Client include your CloudFront domain
+### 1. Create Cognito User Pool
 
-### API Gateway 403 Errors
-- Verify JWT token is in `Authorization` header with `Bearer ` prefix
-- Check Cognito User Pool ID and Client ID match in authorizer configuration
-- Ensure user is authenticated and has valid token
+1. Go to AWS Cognito Console
+2. Create a User Pool with email sign-up
+3. Create an App Client (no secret)
+4. Note the User Pool ID and Client ID
+5. Add Lambda trigger for Post-Confirmation (use `cognitoPostConfirmation` function)
 
-### Lambda Timeout
-- Check CloudWatch logs for specific errors
-- Verify DynamoDB table exists and IAM role has permissions
-- Increase Lambda timeout in Terraform if needed
+### 2. Create RDS Database
 
-### DynamoDB Query Empty Results
-- Verify date format is YYYY-MM-DD
-- Check that sightings exist in date range
-- Confirm user email filtering is correct
+1. Create PostgreSQL RDS instance
+2. Configure security groups for Lambda access
+3. Run `database/schema.sql` to create tables
 
-## Next Steps
+### 3. Deploy Lambda Functions
 
-1. **Custom Domain**: Add Route 53 hosted zone and certificate for custom domain
-2. **Cognito Customization**: Brand login page, add MFA, configure email templates
-3. **Analytics**: Add CloudWatch dashboards and custom metrics
-4. **Database**: Consider DynamoDB Streams for real-time updates
-5. **Mobile App**: Build native iOS/Android app with Amplify
-6. **Notifications**: Add SNS for milestone alerts (e.g., "100 Subarus logged!")
+Each function in the `lambda/` directory should be:
+1. Zipped with dependencies (`npm install` + zip contents)
+2. Uploaded to AWS Lambda
+3. Connected to API Gateway
+4. Configured with environment variables for RDS connection
 
-## Support
+### 4. Configure API Gateway
 
-For issues or questions:
-1. Check CloudWatch Logs
-2. Review Terraform state: `terraform show`
-3. Verify AWS credentials: `aws sts get-caller-identity`
-4. Check IAM permissions for user/role
+1. Create REST API
+2. Create resources and methods:
+   - `POST /sightings` → postSighting Lambda
+   - `GET /sightings` → getSightings Lambda
+   - `GET /leaderboard` → getLeaderboard Lambda
+3. Configure Cognito Authorizer for protected endpoints
+4. Enable CORS
+5. Deploy to a stage
+
+### 5. Deploy Frontend
+
+1. Build: `npm run build`
+2. Upload `dist/` to S3
+3. Configure CloudFront distribution
+4. Update environment variables for production URLs
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start frontend dev server |
+| `npm run build` | Build frontend for production |
+| `npm run preview` | Preview production build |
+| `npm run db:start` | Start local PostgreSQL |
+| `npm run db:stop` | Stop local PostgreSQL |
+| `npm run db:migrate` | Run database migrations |
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
 
 ## License
 
-MIT License - see LICENSE file for details
+MIT License - feel free to use this project for your own Red Subaru tracking needs! 🚗
